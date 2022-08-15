@@ -1,0 +1,159 @@
+.flex{
+  display: flex;
+}
+
+.inline{
+  display: inline;
+}
+
+.inline-flex{
+  display: inline-flex;
+}
+
+.between{
+  @extend .flex;
+  justify-content: space-between;
+}
+.inline-between{
+  @extend .inline-flex;
+  justify-content: space-between;
+}
+.justify-center{
+  @extend .flex;
+  justify-content: center;
+}
+
+.flex-center{
+  @extend .flex;
+  align-items: center;
+}
+
+.flex-start{
+  @extend .flex;
+  align-items: flex-start;
+}
+.flex-end{
+  @extend .flex;
+  align-items: flex-end;
+}
+.flex-baseline{
+  @extend .flex;
+  align-items: baseline;
+}
+
+.inline-flex-center{
+  @extend .inline-flex;
+  align-items: center;
+}
+
+.flex-column{
+  @extend .flex;
+  flex-direction: column;
+}
+
+.text-center{
+  text-align: center;
+}
+
+@for $i from 1 through 10 {
+  .flex#{$i*1} {
+    flex: $i*1;
+  }
+}
+
+.ellipsis {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+@for $i from 2 through 4{
+  .ellipsis#{$i*1}{
+    -webkit-line-clamp: 1*$i;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+@for $i from 1 through 20 {
+  .pt#{$i*5} {
+    padding-top: 5px * $i;
+  }
+  .pl#{$i*5} {
+    padding-left: 5px * $i;
+  }
+  .pr#{$i*5} {
+    padding-right: 5px * $i;
+  }
+  .pb#{$i*5} {
+    padding-bottom: 5px * $i;
+  }
+
+  .pd#{$i*5} {
+    padding: 5px * $i;
+  }
+
+  .mt#{$i*5} {
+    margin-top: 5px * $i;
+  }
+  .ml#{$i*5} {
+    margin-left: 5px * $i;
+  }
+  .mr#{$i*5} {
+    margin-right: 5px * $i;
+  }
+  .mb#{$i*5} {
+    margin-bottom: 5px * $i;
+  }
+}
+
+.pointer{
+  cursor: pointer;
+}
+
+.hover-underline{
+  cursor: pointer;
+  
+  &:hover{
+    text-decoration: underline;
+  }
+}
+
+// .overflow-y{
+//   overflow-y: scroll;
+
+//   &::-webkit-scrollbar {
+//     /*滚动条整体样式*/
+//     width : 0.25rem;  /*高宽分别对应横竖滚动条的尺寸*/
+//   }
+// }
+
+dd{
+  margin-bottom: 0;
+}
+
+ol, ul, dl{
+  margin-bottom: 0;
+}
+
+h1, h2, h3, h4, h5, h6{
+  margin-bottom: 0;
+}
+
+ul{
+  list-style: none;
+  padding-left: 0;
+  
+  li{
+    list-style-type: none;
+  }
+}
+
+:root{
+  --fk-max-width-input: 100%;
+  --fk-border-box-shadow: none;
+  --fk-border-box-shadow-focus: none;
+  --fk-padding-input: 12px;
+}

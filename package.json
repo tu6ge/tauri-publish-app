@@ -15,6 +15,7 @@
   "dependencies": {
     "@tauri-apps/api": "1.0.2",
     "ant-design-vue": "^3.2.11",
+    "sass": "^1.54.4",
     "vue": "3.2.37"
   },
   "devDependencies": {
