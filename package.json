@@ -13,6 +13,9 @@
     "check": "cd src-tauri && cargo check"
   },
   "dependencies": {
+    "@formkit/i18n": "1.0.0-beta.10",
+    "@formkit/themes": "1.0.0-beta.10",
+    "@formkit/vue": "1.0.0-beta.10",
     "@tauri-apps/api": "1.0.2",
     "ant-design-vue": "^3.2.11",
     "sass": "^1.54.4",
