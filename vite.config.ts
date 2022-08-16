@@ -29,7 +29,7 @@ export default defineConfig({
       ]
     }),
   ],
-  clearScreen: false,
+  clearScreen: true,
   envPrefix: ['VITE_', 'TAURI_'],
   server: {
     port: 3000,
