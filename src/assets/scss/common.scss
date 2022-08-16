@@ -1,0 +1,31 @@
+h1,h2,h3,h4{
+  margin-bottom: 0;
+}
+
+.home{
+  .ant-layout-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h1{
+      color: #ffffff;
+    }
+  }
+}
+
+.setting{
+  display: flex;
+  justify-content: center;
+
+  .formkit-actions{
+    display: none;
+  }
+}
+
+.ant-modal-body{
+  .formkit-actions{
+    display: none;
+  }
+}
+

@@ -1,9 +1,10 @@
 <script setup>
-import { open } from '@tauri-apps/api/dialog'
+import { SettingOutlined, PlusOutlined } from '@ant-design/icons-vue'
+
 const collapsed = ref(false)
 const selectedKeys = ref(['1'])
-const openKeys = ref(['sub1'])
-const preOpenKeys = ref(['sub1'])
+const openKeys = ref([])
+const preOpenKeys = ref([])
 const addAppModel = ref(false)
 const initOss = ref(true)
 
@@ -13,26 +14,41 @@ const toggleCollapsed = () => {
 }
 
 const columns = [
-  { title: 'Name', dataIndex: 'name', key: 'name', fixed: true },
-  { title: 'Age', dataIndex: 'age', key: 'age' },
-  { title: 'Address', dataIndex: 'address', key: 'address' },
-  { title: 'Action', key: 'action' },
+  { title: '名称', dataIndex: 'name', key: 'name', fixed: true },
+  { title: '版本', dataIndex: 'version', key: 'version' },
+  { title: '状态', dataIndex: 'status', key: 'status' },
+  { title: '操作', key: 'action' },
 ];
 
 const data = [
   {
     key: 1,
     name: 'John Brown',
-    age: 32,
-    address: 'New York No. 1 Lake Park',
+    version: '0.2.0',
+    status: '部分上传',
     description: 'My name is John Brown, I am 32 years old, living in New York No. 1 Lake Park.',
   },
 ]
+
+const configData = reactive({
+  key_id: '',
+  key_secret: '',
+  end_point: '',
+  bucket: '',
+  save_path: '',
+  version_file: '',
+})
 
 function saveOssConfig() {
   // 保存 阿里云 的配置
 }
 
+const addData = reactive({
+  name: '',
+  path: '',
+})
+
+import { open } from '@tauri-apps/api/dialog'
 function selectAppPath() {
   open({
     directory: true,
@@ -41,9 +57,15 @@ function selectAppPath() {
     console.log(path)
   })
 }
+
+const publishOpen = ref(false)
+
+function publish(){
+  publishOpen.value = true
+}
 </script>
 <template>
-  <div class="flex">
+  <div class="flex home">
     <div class="slider">
       <a-menu
         v-model:openKeys="openKeys"
@@ -52,54 +74,50 @@ function selectAppPath() {
         :inline-collapsed="collapsed"
       >
         <a-menu-item key="1">
-          <template #icon>
-            <PieChartOutlined />
-          </template>
           <span>Option 1</span>
         </a-menu-item>
         <a-menu-item key="2">
-          <template #icon>
-            <DesktopOutlined />
-          </template>
           <span>Option 2</span>
         </a-menu-item>
         <a-menu-item key="3">
-          <template #icon>
-            <InboxOutlined />
-          </template>
           <span>Option 3</span>
         </a-menu-item>
-        <a-sub-menu key="sub1">
-          <template #icon>
-            <MailOutlined />
-          </template>
-          <template #title>Navigation One</template>
-          <a-menu-item key="5">Option 5</a-menu-item>
-          <a-menu-item key="6">Option 6</a-menu-item>
-          <a-menu-item key="7">Option 7</a-menu-item>
-          <a-menu-item key="8">Option 8</a-menu-item>
-        </a-sub-menu>
       </a-menu>
-      <a-button type="primary" @click="addAppModel=true">添加 APP</a-button>
+      <a-button type="primary" @click="addAppModel=true">
+        <template #icon>
+          <PlusOutlined />
+        </template>
+        添加 APP
+      </a-button>
     </div>
     <a-layout>
       <a-layout-header>
-        <a-button type="primary" @click="toggleCollapsed">
+        <!-- <a-button type="primary" @click="toggleCollapsed">
           <MenuUnfoldOutlined v-if="collapsed" />
           <MenuFoldOutlined v-else />
-        </a-button>
-        Header
+        </a-button> -->
+        <h1>安装包列表</h1>
+        <router-link :to="{name:'setting'}">
+          <a-button shape="circle">
+            <template #icon><SettingOutlined /></template>
+          </a-button>
+        </router-link>
+        
       </a-layout-header>
       <a-layout-content>
         <a-table :columns="columns" :data-source="data">
           <template #bodyCell="{ column }">
             <template v-if="column.key === 'action'">
-              <a>Delete</a>
+              <a>上传</a>
+              <a class="ml20" @click="publish">上传并发布</a>
             </template>
           </template>
           <template #expandedRowRender="{ record }">
             <p style="margin: 0">
-              {{ record.description }}
+              {{ record.description }} <a>已上传</a>
+            </p>
+            <p style="margin: 0">
+              {{ record.description }} <a>未上传</a>
             </p>
           </template>
         </a-table>
@@ -107,23 +125,34 @@ function selectAppPath() {
       <!-- <a-layout-footer>Footer</a-layout-footer> -->
     </a-layout>
 
-    <a-modal v-model:visible="addAppModel" title="Basic Modal" @ok="handleOk">
-      <FormKit type="form">
-        <FormKit type="text" label="APP 包所在目录" readonly placeholder="安装包所在目录">
+    <a-modal v-model:visible="addAppModel" title="新增 App" @ok="handleOk">
+      <FormKit type="form" v-model="addData">
+        <FormKit type="text" label="安装包所在目录" name="path" readonly placeholder="安装包所在目录">
           <template #suffix>
             <a-button type="primary" @click="selectAppPath">浏览</a-button>
           </template>
         </FormKit>
-        <FormKit type="text" label="APP 名称"></FormKit>
+        <FormKit type="text" label="APP 名称" name="name"></FormKit>
       </FormKit>
     </a-modal>
     <a-modal v-model:visible="initOss" title="初始化 OSS 配置" @ok="saveOssConfig">
-      <FormKit type="form" submit-label="保存">
-        <FormKit type="text" label="KeyId" validation="required"></FormKit>
-        <FormKit type="text" label="KeySecret" validation="required"></FormKit>
-        <FormKit type="text" label="EndPoint" validation="required"></FormKit>
-        <FormKit type="text" label="Bucket" validation="required"></FormKit>
+      <FormKit type="form" submit-label="保存" v-model="configData">
+        <FormKit type="text" label="KeyId" name="key_id" validation="required"></FormKit>
+        <FormKit type="text" label="KeySecret" name="key_secret" validation="required"></FormKit>
+        <FormKit type="text" label="EndPoint" name="end_point" validation="required"></FormKit>
+        <FormKit type="text" label="Bucket" name="bucket" validation="required"></FormKit>
+        <FormKit type="text" label="安装包存放目录" name="save_path" validation="required" help="设置一个 OSS 的目录，用于存放所有版本的安装包"></FormKit>
+        <FormKit type="text" label="版本校验文件存储路径" name="version_file" validation="required" help="谨慎修改，修改后可能导致之前的 App 无法升级"></FormKit>
       </FormKit>
     </a-modal>
+    <a-modal v-model:visible="publishOpen" title="发布新版本" @ok="saveOssConfig">
+      <FormKit type="form" submit-label="发布">
+        <FormKit type="textarea" label="版本说明" validation="required"></FormKit>
+        <FormKit type="datetime-local" label="发行时间" validation="required"></FormKit>
+        <FormKit type="text" label="版本" readonly></FormKit>
+        <FormKit type="textarea" label="签名信息" readonly></FormKit>
+      </FormKit>
+    </a-modal>
+    
   </div>
 </template>
