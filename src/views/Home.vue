@@ -1,12 +1,13 @@
 <script setup>
 import { SettingOutlined, PlusOutlined } from '@ant-design/icons-vue'
+import { invoke } from '@tauri-apps/api/tauri'
 
 const collapsed = ref(false)
 const selectedKeys = ref(['1'])
 const openKeys = ref([])
 const preOpenKeys = ref([])
 const addAppModel = ref(false)
-const initOss = ref(true)
+const initOss = ref(false)
 
 const toggleCollapsed = () => {
   state.collapsed = !state.collapsed;
@@ -33,14 +34,33 @@ const data = [
 const configData = reactive({
   key_id: '',
   key_secret: '',
-  end_point: '',
+  endpoint: '',
   bucket: '',
   save_path: '',
   version_file: '',
 })
 
-function saveOssConfig() {
+import { message } from 'ant-design-vue'
+
+function saveOssConfig(data) {
   // 保存 阿里云 的配置
+  invoke('save_oss_config', {config: data}).then(res=>{
+    message.success("保存成功")
+    initOss.value = false
+  }).catch(err=>{
+    console.error(err)
+  })
+}
+
+onMounted(()=>{
+  invoke('get_oss_config').then((res)=>{
+    
+  }).catch(err=>{
+    initOss.value = true
+  })
+})
+function getOssConfig(){
+  
 }
 
 const addData = reactive({
@@ -135,11 +155,14 @@ function publish(){
         <FormKit type="text" label="APP 名称" name="name"></FormKit>
       </FormKit>
     </a-modal>
-    <a-modal v-model:visible="initOss" title="初始化 OSS 配置" @ok="saveOssConfig">
-      <FormKit type="form" submit-label="保存" v-model="configData">
+    <a-modal v-model:visible="initOss" title="初始化 OSS 配置" @ok="$formkit.submit('home_setting')" :cancelText="false"
+      okText="保存"
+      wrapClassName="home-setting"
+     :maskClosable="false" :closable="false">
+      <FormKit type="form" submit-label="保存" v-model="configData" id="home_setting" @submit="saveOssConfig">
         <FormKit type="text" label="KeyId" name="key_id" validation="required"></FormKit>
         <FormKit type="text" label="KeySecret" name="key_secret" validation="required"></FormKit>
-        <FormKit type="text" label="EndPoint" name="end_point" validation="required"></FormKit>
+        <FormKit type="text" label="EndPoint" name="endpoint" validation="required"></FormKit>
         <FormKit type="text" label="Bucket" name="bucket" validation="required"></FormKit>
         <FormKit type="text" label="安装包存放目录" name="save_path" validation="required" help="设置一个 OSS 的目录，用于存放所有版本的安装包"></FormKit>
         <FormKit type="text" label="版本校验文件存储路径" name="version_file" validation="required" help="谨慎修改，修改后可能导致之前的 App 无法升级"></FormKit>

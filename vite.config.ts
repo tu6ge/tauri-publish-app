@@ -24,7 +24,7 @@ export default defineConfig({
     Components({
       resolvers: [
         AntDesignVueResolver({
-          importCss:false,
+          //importCss:false,
         }),
       ]
     }),

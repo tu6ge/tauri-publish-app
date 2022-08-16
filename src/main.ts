@@ -7,6 +7,7 @@ import router from './router'
 
 import { zh } from '@formkit/i18n'
 import { plugin, defaultConfig } from '@formkit/vue'
+import 'ant-design-vue/es/message/style/css'
 
 import '@formkit/themes/genesis'
 import '@/assets/scss/global.scss' // 存放 margin padding flex 等快捷 class
