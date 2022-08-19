@@ -7,7 +7,7 @@ mod oss;
 use oss::{OssConfigWrapper,save_oss_config,get_oss_config};
 
 mod app;
-use app::{get_all_app, push_app, remove_app, update_app};
+use app::{get_all_app, get_app, push_app, remove_app, update_app};
 
 fn main() {
     let ctx = tauri::generate_context!();
@@ -17,6 +17,7 @@ fn main() {
             save_oss_config,
             get_oss_config,
             get_all_app,
+            get_app,
             push_app,
             remove_app,
             update_app,

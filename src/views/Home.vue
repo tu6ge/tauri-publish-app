@@ -63,6 +63,23 @@ function getOssConfig(){
   
 }
 
+const appList = ref([])
+const appIndex = ref(0)
+
+const currentApp = computed(()=>{
+  return appList.value[appIndex.value]
+})
+
+onMounted(()=>{
+  get_all_app()
+})
+
+function get_all_app(){
+  invoke('get_all_app').then((res)=>{
+    appList.value = res.list
+  })
+}
+
 const addData = reactive({
   name: '',
   path: '',
@@ -74,7 +91,16 @@ function selectAppPath() {
     directory: true,
     //defaultPath: await appDir(),
   }).then((path)=>{
-    console.log(path)
+    addData.path = path
+  })
+}
+
+function saveApp(data){
+  invoke('push_app', {app:data}).then((res)=>{
+    get_all_app()
+    addAppModel.value = false
+  }).catch(err=>{
+    console.error(err)
   })
 }
 
@@ -93,14 +119,8 @@ function publish(){
         mode="inline"
         :inline-collapsed="collapsed"
       >
-        <a-menu-item key="1">
-          <span>Option 1</span>
-        </a-menu-item>
-        <a-menu-item key="2">
-          <span>Option 2</span>
-        </a-menu-item>
-        <a-menu-item key="3">
-          <span>Option 3</span>
+        <a-menu-item v-for="(item,index) in appList" :key="index">
+          <span>{{item.name}}</span>
         </a-menu-item>
       </a-menu>
       <a-button type="primary" @click="addAppModel=true">
@@ -145,14 +165,14 @@ function publish(){
       <!-- <a-layout-footer>Footer</a-layout-footer> -->
     </a-layout>
 
-    <a-modal v-model:visible="addAppModel" title="新增 App" @ok="handleOk">
-      <FormKit type="form" v-model="addData">
-        <FormKit type="text" label="安装包所在目录" name="path" readonly placeholder="安装包所在目录">
+    <a-modal v-model:visible="addAppModel" title="新增 App" @ok="$formkit.submit('app_setting')">
+      <FormKit type="form" v-model="addData" id="app_setting" @submit="saveApp">
+        <FormKit type="text" label="安装包所在目录" name="path" readonly validation="required" placeholder="安装包所在目录">
           <template #suffix>
             <a-button type="primary" @click="selectAppPath">浏览</a-button>
           </template>
         </FormKit>
-        <FormKit type="text" label="APP 名称" name="name"></FormKit>
+        <FormKit type="text" label="APP 名称" name="name" validation="required"></FormKit>
       </FormKit>
     </a-modal>
     <a-modal v-model:visible="initOss" title="初始化 OSS 配置" @ok="$formkit.submit('home_setting')" :cancelText="false"

@@ -20,7 +20,7 @@ impl AppList {
     let mut content = String::new();
     let data_dir = data_dir();
 
-    let mut file = File::open(
+    let mut file = File::options().write(true).read(true).create(true).open(
       data_dir.unwrap()
       .join("tauri_oss_app_config.json")
     )
@@ -66,6 +66,14 @@ impl AppList {
     self
   }
 
+  fn get(self, index: usize)-> Result<AppConfig, String>{
+    if self.list.len() > index {
+      Ok(self.list[index].clone())
+    }else {
+      Err("no found".into())
+    }
+  }
+
   fn remove(mut self, index: usize)-> Self{
     self.list.remove(index);
     self
@@ -73,20 +81,25 @@ impl AppList {
 }
 
 #[tauri::command]
-pub fn get_all_app(config: AppConfig) -> Result<AppList, String> {
+pub fn get_all_app() -> Result<AppList, String> {
   AppList::get_all()
 }
 
 #[tauri::command]
-pub fn update_app(index: usize, config: AppConfig) -> Result<String, String> {
-  AppList::get_all()?.update(index, config).save()
+pub fn get_app(index: usize) -> Result<AppConfig, String> {
+  AppList::get_all()?.get(index)
+}
+
+#[tauri::command]
+pub fn update_app(index: usize, app: AppConfig) -> Result<String, String> {
+  AppList::get_all()?.update(index, app).save()
 }
 
 
 #[tauri::command]
-pub fn push_app(config: AppConfig) -> Result<String, String> {
+pub fn push_app(app: AppConfig) -> Result<String, String> {
   let list = AppList::get_all()?;
-  list.push(config).save()
+  list.push(app).save()
 }
 
 #[tauri::command]
