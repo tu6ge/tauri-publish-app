@@ -19,11 +19,6 @@ pub struct OssConfig{
   version_file: String,
 }
 
-impl OssConfig {
-  pub fn copy(mut self, a: OssConfig) {
-    self = a;
-  }
-}
 
 #[derive(Default)]
 pub struct OssConfigWrapper(Arc<Mutex<OssConfig>>);
@@ -41,7 +36,7 @@ pub fn save_oss_config(config: OssConfig, _db: State<'_, OssConfigWrapper>) -> R
       .join("tauri_oss_config.json")
     )
     .map_err(|_|"create tauri_oss_config.json failed".to_string())?;
-  file.write_fmt(format_args!("{}", json));
+  file.write_fmt(format_args!("{}", json)).map_err(|_|"writing tauri_oss_config.json failed".to_string())?;
 
   // let mut oss_config = *Arc::clone(&db.0).get_mut().unwrap();
 
@@ -65,7 +60,7 @@ pub fn get_oss_config() -> Result<OssConfig, String> {
   )
   .map_err(|_|"open tauri_oss_config.json failed".to_string())?;
 
-  file.read_to_string(&mut content);
+  file.read_to_string(&mut content).map_err(|_|"reading tauri_oss_config.json failed".to_string())?;
   let store_config: OssConfig = serde_json::from_str(&content).map_err(|_|"json parse failed".to_string())?;
   //println!("key_id: {}", store_config.key_id);
 
