@@ -1,7 +1,7 @@
 {
   "package": {
     "productName": "Tauri Vue Template",
-    "version": "0.2.0"
+    "version": "0.2.1"
   },
   "build": {
     "distDir": "../dist",
@@ -12,7 +12,7 @@
   "tauri": {
     "bundle": {
       "active": true,
-      "targets": ["deb","updater"],
+      "targets": ["deb","updater","msi"],
       "identifier": "net.uninen.dev",
       "icon": [
         "icons/32x32.png",
@@ -49,10 +49,14 @@
           "https://releases.myapp.com/{{target}}/{{current_version}}"
       ],
       "dialog": true,
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDg0NERENDI0Q0RGMEZFQjYKUldTMi92RE5KTlJOaEhrK1k2Ykc3eVZiU3hzdEV5ODVySHJoNzkwUFR5RHZnY0NrU1dVTXRJa1kK"
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEExNkIzNDQyODQwODRDNzAKUldSd1RBaUVRalJyb1NlNVd3U3B3LzFEaHdTNjhUb3VVUWV1RG52R2k3bHQwZFdudlV2cGpBdlIK"
     },
     "allowlist": {
-      "all": true
+      "all": true,
+      "fs": {
+        "readDir":true,
+        "scope": ["**"]
+      }
     },
     "windows": [
       {

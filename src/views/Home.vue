@@ -1,6 +1,8 @@
 <script setup>
 import { SettingOutlined, PlusOutlined } from '@ant-design/icons-vue'
 import { invoke } from '@tauri-apps/api/tauri'
+import { readDir } from '@tauri-apps/api/fs';
+import { groupBy, map } from 'lodash-es'
 
 const collapsed = ref(false)
 const selectedKeys = ref(['1'])
@@ -65,10 +67,41 @@ function getOssConfig(){
 
 const appList = ref([])
 const appIndex = ref(0)
+const pathList = ref([])
 
 const currentApp = computed(()=>{
-  return appList.value[appIndex.value]
+  return appList.value[appIndex.value] || {}
 })
+
+watch(currentApp, (res)=>{
+  if(Object.keys(res).length==0){
+    return
+  }
+
+  readDir(res.path, {recursive: true}).then(paths=>{
+    pathList.value = paths
+    const ab = groupBy([1,2,3], re=>{
+      return re%2
+    })
+    const re = map(ab, re=>re*2)
+    console.log(re)
+  })
+})
+
+const pathGroup = computed(()=>{
+  return map(groupBy(pathList.value, re=>{
+    return re.name.substr(0,re.name.indexOf('.msi'))
+  }), (item,key)=>{
+    const name_info = key.split('_')
+    return {
+      name: key,
+      version: name_info[1],
+      file_list: item,
+      status: '未上传',
+    }
+  })
+})
+
 
 onMounted(()=>{
   get_all_app()
@@ -145,7 +178,7 @@ function publish(){
         
       </a-layout-header>
       <a-layout-content>
-        <a-table :columns="columns" :data-source="data">
+        <a-table :columns="columns" :data-source="pathGroup">
           <template #bodyCell="{ column }">
             <template v-if="column.key === 'action'">
               <a>上传</a>
@@ -153,11 +186,8 @@ function publish(){
             </template>
           </template>
           <template #expandedRowRender="{ record }">
-            <p style="margin: 0">
-              {{ record.description }} <a>已上传</a>
-            </p>
-            <p style="margin: 0">
-              {{ record.description }} <a>未上传</a>
+            <p style="margin: 0" v-for="(file, k) in record.file_list" :key="k">
+              {{ file.name }} <a>已上传</a>
             </p>
           </template>
         </a-table>
