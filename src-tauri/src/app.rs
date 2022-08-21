@@ -6,8 +6,8 @@ use tauri::{api::path::data_dir};
 
 #[derive(Default,Serialize, Deserialize, Clone)]
 pub struct AppConfig{
-  name: String,
-  path: String,
+  pub name: String,
+  pub path: String,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -66,7 +66,7 @@ impl AppList {
     self
   }
 
-  fn get(self, index: usize)-> Result<AppConfig, String>{
+  pub fn get(self, index: usize)-> Result<AppConfig, String>{
     if self.list.len() > index {
       Ok(self.list[index].clone())
     }else {

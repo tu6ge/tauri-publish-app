@@ -80,11 +80,6 @@ watch(currentApp, (res)=>{
 
   readDir(res.path, {recursive: true}).then(paths=>{
     pathList.value = paths
-    const ab = groupBy([1,2,3], re=>{
-      return re%2
-    })
-    const re = map(ab, re=>re*2)
-    console.log(re)
   })
 })
 
@@ -102,6 +97,16 @@ const pathGroup = computed(()=>{
   })
 })
 
+function uploadFiles(list){
+  const files = map(list, res=>{
+    return res.name
+  })
+  invoke('upload_files', {files, appIndex:appIndex.value}).then((re)=>{
+    console.log(re)
+  }).catch(err=>{
+    console.error(err)
+  })
+}
 
 onMounted(()=>{
   get_all_app()
@@ -179,9 +184,9 @@ function publish(){
       </a-layout-header>
       <a-layout-content>
         <a-table :columns="columns" :data-source="pathGroup">
-          <template #bodyCell="{ column }">
+          <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'action'">
-              <a>上传</a>
+              <a @click="uploadFiles(record.file_list)">上传</a>
               <a class="ml20" @click="publish">上传并发布</a>
             </template>
           </template>
