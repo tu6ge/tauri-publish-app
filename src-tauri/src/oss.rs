@@ -42,6 +42,20 @@ impl OssConfig {
 
     Ok(store_config)
   }
+
+  pub fn get_bucket_domain(&self) -> String {
+    let bucket = String::from("https://") + &self.bucket + ".";
+    let endpoint = self.endpoint.replace("https://", &bucket);
+    endpoint
+  }
+
+  pub fn get_version_file_url(&self) -> String {
+    self.get_bucket_domain() + &self.version_file
+  }
+
+  pub fn get_file_url(&self, path: String) -> String {
+    self.get_bucket_domain() + "/" + &self.save_path + "/" + &path
+  }
 }
 
 
@@ -75,20 +89,27 @@ pub fn get_oss_config() -> Result<OssConfig, String> {
   OssConfig::from_file()
 }
 
-pub struct SigFile;
+pub struct FileType;
 
-impl Plugin for SigFile {
+impl Plugin for FileType {
   fn name(&self) -> &'static str {
     "sig_file_ext"
   }
 
   fn initialize(&mut self, client: &mut aliyun_oss_client::client::Client) -> aliyun_oss_client::errors::OssResult<()> {
-    let mime_type = "application/pgp-signature";
-    let extension = "sig";
-    fn m(buf: &[u8]) -> bool {
+    let sig_mime_type = "application/pgp-signature";
+    let sig_extension = "sig";
+    fn sig_match(buf: &[u8]) -> bool {
       return buf.len() >= 3 && buf[0] == 0x64 && buf[1] == 0x57 && buf[2] == 0x35;
     }
-    client.infer.add(mime_type, extension, m);
+    client.infer.add(sig_mime_type, sig_extension, sig_match);
+
+    let json_mime_type = "application/json";
+    let json_extension = "json";
+    fn json_match(buf: &[u8]) -> bool {
+        return buf.len() >= 3 && buf[0] == 0x7b
+    }
+    client.infer.add(json_mime_type, json_extension, json_match);
 
     Ok(())
   }
@@ -130,17 +151,70 @@ pub async fn upload_files(files: Vec<String>, app_index: usize) -> Result<String
   let config = OssConfig::from_file()?;
 
   let client = aliyun_oss_client::client(&config.key_id,&config.key_secret, &config.endpoint, &config.bucket)
-    .plugin(Box::new(SigFile{})).map_err(|e|e.to_string())?
+    .plugin(Box::new(FileType{})).map_err(|e|e.to_string())?
     ;
 
   for file in files.into_iter() {
     let file_str = app.path.to_owned() + "/" + &file;
-    //println!("filename {}",file_str);
     let file_name = Path::new(&file_str);
     let key = config.save_path.to_owned() + "/" + file.as_ref();
     let _result = client.put_file(file_name.to_owned(), &key).await.map_err(|e|e.to_string())?;
-    //println!("result: {}",result);
   }
 
   Ok("ok".into())
+}
+
+// debug 可以删掉
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Publish{
+    notes: String,
+    pub_date: String,
+    files: Vec<String>,
+    version: String,
+    signature: String,
+    app_index: usize,
+}
+
+
+// 发布版本
+#[tauri::command]
+pub async fn publish(info: Publish) -> Result<String, String> {
+    use super::app::AppList;
+    use std::path::Path;
+    use serde_json::{json, to_writer_pretty};
+
+    println!("info: {:?}", info);
+
+    let app = AppList::get_all()?.get(info.app_index)?;
+
+    let config = OssConfig::from_file()?;
+
+    let client = aliyun_oss_client::client(&config.key_id,&config.key_secret, &config.endpoint, &config.bucket)
+        .plugin(Box::new(FileType{})).map_err(|e|e.to_string())?
+        ;
+
+    let mut file = info.files.into_iter().filter(|f|{ 
+        f.ends_with("zip")
+    });
+    let zip_file = file.next();
+    if let None = zip_file {
+        return Err("not found zip file".into());
+    }
+    let zip_file = zip_file.unwrap();
+    let zip_file_url = config.get_file_url(zip_file);
+
+    let json = json!({
+        "url": zip_file_url,
+        "version": info.version,
+        "notes": info.notes,
+        "pub_date": info.pub_date,
+        "signature": info.signature,
+    });
+
+    let mut json_vu8 = Vec::new();
+    to_writer_pretty(&mut json_vu8, &json).map_err(|e|e.to_string())?;
+
+    client.put_content(&json_vu8, &config.version_file).await.map_err(|e|e.to_string())?;
+
+    Ok("ok".into())
 }

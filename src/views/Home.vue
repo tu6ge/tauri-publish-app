@@ -1,8 +1,8 @@
 <script setup>
 import { SettingOutlined, PlusOutlined } from '@ant-design/icons-vue'
 import { invoke } from '@tauri-apps/api/tauri'
-import { readDir } from '@tauri-apps/api/fs';
-import { groupBy, map } from 'lodash-es'
+import { readDir, readTextFile } from '@tauri-apps/api/fs';
+import { groupBy, map, filter } from 'lodash-es'
 
 const collapsed = ref(false)
 const selectedKeys = ref(['1'])
@@ -22,16 +22,6 @@ const columns = [
   { title: '状态', dataIndex: 'status', key: 'status' },
   { title: '操作', key: 'action' },
 ];
-
-const data = [
-  {
-    key: 1,
-    name: 'John Brown',
-    version: '0.2.0',
-    status: '部分上传',
-    description: 'My name is John Brown, I am 32 years old, living in New York No. 1 Lake Park.',
-  },
-]
 
 const configData = reactive({
   key_id: '',
@@ -143,9 +133,46 @@ function saveApp(data){
 }
 
 const publishOpen = ref(false)
+const publishInfo = reactive({
+  notes: '',
+  pub_date: '',
+  version: '',
+  signature: '',
+  files: [],
+  app_index: appIndex.value,
+})
 
-function publish(){
+// TODO 更改版本号时，表单不更改
+async function publish(list, version){
+  publishInfo.files = map(list, res=>res.name)
+
+  const sig_file = filter(list, res=>{
+    if(res.name.substr(-3) =='sig'){
+      return true
+    }
+    return false
+  })
+  if(sig_file.length==0){
+    message.error("找不到签名文件")
+    return
+  }
+  const file = sig_file[0]
+
+  publishInfo.signature = await readTextFile(file.path)
+  publishInfo.version = version
+
   publishOpen.value = true
+}
+
+function savePublishInfo(info){
+
+  invoke('publish', {info}).then(res=>{
+    message.success("发行版本成功")
+    publishOpen.value = false
+  }).catch(err=>{
+    message.error(err)
+    console.error(err)
+  })
 }
 </script>
 <template>
@@ -187,7 +214,7 @@ function publish(){
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'action'">
               <a @click="uploadFiles(record.file_list)">上传</a>
-              <a class="ml20" @click="publish">上传并发布</a>
+              <a class="ml20" @click="publish(record.file_list, record.version)">上传并发布</a>
             </template>
           </template>
           <template #expandedRowRender="{ record }">
@@ -223,12 +250,12 @@ function publish(){
         <FormKit type="text" label="版本校验文件存储路径" name="version_file" validation="required" help="谨慎修改，修改后可能导致之前的 App 无法升级"></FormKit>
       </FormKit>
     </a-modal>
-    <a-modal v-model:visible="publishOpen" title="发布新版本" @ok="saveOssConfig">
-      <FormKit type="form" submit-label="发布">
-        <FormKit type="textarea" label="版本说明" validation="required"></FormKit>
-        <FormKit type="datetime-local" label="发行时间" validation="required"></FormKit>
-        <FormKit type="text" label="版本" readonly></FormKit>
-        <FormKit type="textarea" label="签名信息" readonly></FormKit>
+    <a-modal v-model:visible="publishOpen" title="发布新版本" @ok="$formkit.submit('publish')">
+      <FormKit type="form" v-model="publishInfo" id="publish" @submit="savePublishInfo" submit-label="发布">
+        <FormKit type="textarea" label="版本说明" name="notes" validation="required"></FormKit>
+        <FormKit type="datetime-local" label="发行时间" name="pub_date" validation="required"></FormKit>
+        <FormKit type="text" label="版本号" name="version" placeholder="请输入要发布的版本号" validation="required"></FormKit>
+        <FormKit type="textarea" label="签名信息" name="signature" validation="required" ></FormKit>
       </FormKit>
     </a-modal>
     

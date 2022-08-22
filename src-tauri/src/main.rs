@@ -4,7 +4,7 @@
 )]
 
 mod oss;
-use oss::{save_oss_config,get_oss_config, upload_files, OssState};
+use oss::{save_oss_config,get_oss_config, upload_files, OssState, publish};
 
 mod app;
 use app::{AppList, get_all_app, get_app, push_app, remove_app, update_app};
@@ -18,6 +18,7 @@ fn main() {
             save_oss_config,
             get_oss_config,
             upload_files,
+            publish,
             get_all_app,
             get_app,
             push_app,
