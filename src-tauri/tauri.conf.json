@@ -46,7 +46,7 @@
     "updater": {
       "active": true,
       "endpoints": [
-          "https://releases.myapp.com/{{target}}/{{current_version}}"
+          "https://honglei123.oss-cn-shanghai.aliyuncs.com/app-config.json"
       ],
       "dialog": true,
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEExNkIzNDQyODQwODRDNzAKUldSd1RBaUVRalJyb1NlNVd3U3B3LzFEaHdTNjhUb3VVUWV1RG52R2k3bHQwZFdudlV2cGpBdlIK"
