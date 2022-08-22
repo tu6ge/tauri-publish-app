@@ -102,9 +102,9 @@ function uploadFiles(list){
     return res.name
   })
   invoke('upload_files', {files, appIndex:appIndex.value}).then((re)=>{
-    console.log(re)
+    message.success("上传成功")
   }).catch(err=>{
-    console.error(err)
+    message.error("上传失败" + err)
   })
 }
 

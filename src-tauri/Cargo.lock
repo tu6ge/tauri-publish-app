@@ -25,7 +25,7 @@ dependencies = [
 
 [[package]]
 name = "aliyun-oss-client"
-version = "0.7.2"
+version = "0.7.3"
 dependencies = [
  "anyhow",
  "base64",
@@ -3186,6 +3186,7 @@ name = "tauri_publish_app"
 version = "0.1.0"
 dependencies = [
  "aliyun-oss-client",
+ "futures",
  "serde",
  "serde_json",
  "tauri",

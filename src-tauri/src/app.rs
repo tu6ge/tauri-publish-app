@@ -10,9 +10,10 @@ pub struct AppConfig{
   pub path: String,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 pub struct AppList{
   list: Vec<AppConfig>,
+  index: usize,
 }
 
 impl AppList {
@@ -31,6 +32,7 @@ impl AppList {
     if content.is_empty() {
       return Ok(AppList {
         list: Vec::new(),
+        index: 0,
       });
     }
 
@@ -61,7 +63,13 @@ impl AppList {
     self
   }
 
+  fn set_index(mut self, index: usize)-> Self{
+    self.index = index;
+    self
+  }
+
   fn update(mut self, index: usize, app: AppConfig)-> Self{
+    self.index = index;
     self.list[index] = app;
     self
   }
@@ -99,11 +107,11 @@ pub fn update_app(index: usize, app: AppConfig) -> Result<String, String> {
 #[tauri::command]
 pub fn push_app(app: AppConfig) -> Result<String, String> {
   let list = AppList::get_all()?;
-  list.push(app).save()
+  list.push(app).set_index(0).save()
 }
 
 #[tauri::command]
 pub fn remove_app(index: usize) -> Result<String, String> {
   let list = AppList::get_all()?;
-  list.remove(index).save()
+  list.remove(index).set_index(0).save()
 }

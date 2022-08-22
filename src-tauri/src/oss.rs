@@ -1,6 +1,9 @@
 use std::{fs::File, io::{Write, Read}};
 
-use aliyun_oss_client::plugin::Plugin;
+use aliyun_oss_client::{
+  plugin::Plugin, 
+  client::Client
+};
 use serde::{Deserialize, Serialize};
 use tauri::{State, api::path::data_dir};
 use std::{
@@ -9,15 +12,14 @@ use std::{
   },
 };
 
-
 #[derive(Default,Serialize, Deserialize, Clone)]
 pub struct OssConfig{
-  key_id: String,
-  key_secret: String,
-  endpoint: String,
-  bucket: String,
-  save_path: String,
-  version_file: String,
+  pub key_id: String,
+  pub key_secret: String,
+  pub endpoint: String,
+  pub bucket: String,
+  pub save_path: String,
+  pub version_file: String,
 }
 
 impl OssConfig {
@@ -73,7 +75,7 @@ pub fn get_oss_config() -> Result<OssConfig, String> {
   OssConfig::from_file()
 }
 
-struct SigFile;
+pub struct SigFile;
 
 impl Plugin for SigFile {
   fn name(&self) -> &'static str {
@@ -92,6 +94,32 @@ impl Plugin for SigFile {
   }
 }
 
+#[derive(Default)]
+pub struct OssState<'a>{
+  pub client: Mutex<Option<Client<'a>>>,
+}
+
+// #[tauri::command]
+// pub fn init_oss<'a>(oss_state: State<'a, OssState>) -> Result<String, String> {
+//     let config = OssConfig::from_file().unwrap();
+//     // if let Err(_) = config {
+//     //     let oss_state = OssState::default();
+//     // };
+
+//     let key_id = Cow::from(config.key_id.clone());
+//     let key_secret = &config.key_secret;
+//     let endpoint = &config.endpoint;
+//     let bucket = &config.bucket;
+//     let client = aliyun_oss_client::client_cow(key_id,key_secret, endpoint, bucket)
+//         //.plugin(Box::new(SigFile{})).map_err(|e|e.to_string()).unwrap()
+//         ;
+//     // let state = OssState{
+//     //     client: Mutex::new(Some(client)),
+//     // };
+//     *oss_state.client.lock().unwrap() = Some(client);
+//     Ok("ok".into())
+// }
+
 #[tauri::command]
 pub async fn upload_files(files: Vec<String>, app_index: usize) -> Result<String, String> {
   use super::app::AppList;
@@ -107,12 +135,11 @@ pub async fn upload_files(files: Vec<String>, app_index: usize) -> Result<String
 
   for file in files.into_iter() {
     let file_str = app.path.to_owned() + "/" + &file;
-    println!("filename {}",file_str);
+    //println!("filename {}",file_str);
     let file_name = Path::new(&file_str);
     let key = config.save_path.to_owned() + "/" + file.as_ref();
-    println!("key {}",key);
-    let result = client.put_file(file_name.to_owned(), &key).await.map_err(|e|e.to_string())?;
-    println!("result: {}",result);
+    let _result = client.put_file(file_name.to_owned(), &key).await.map_err(|e|e.to_string())?;
+    //println!("result: {}",result);
   }
 
   Ok("ok".into())

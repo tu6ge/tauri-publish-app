@@ -4,16 +4,16 @@
 )]
 
 mod oss;
-use oss::{OssConfigWrapper,save_oss_config,get_oss_config, upload_files};
+use oss::{save_oss_config,get_oss_config, upload_files, OssState};
 
 mod app;
-use app::{get_all_app, get_app, push_app, remove_app, update_app};
+use app::{AppList, get_all_app, get_app, push_app, remove_app, update_app};
 use tauri::Manager;
 
 fn main() {
+
     let ctx = tauri::generate_context!();
     tauri::Builder::default()
-        .manage(OssConfigWrapper::default())
         .invoke_handler(tauri::generate_handler![
             save_oss_config,
             get_oss_config,
@@ -25,10 +25,11 @@ fn main() {
             update_app,
         ])
         .menu(
-            tauri::Menu::os_default("Tauri Vue Template")
+            tauri::Menu::os_default("Tauri Publish App")
         )
         .setup(|app|{
-            //app.manage(aliyun_oss_client::client::Client::default());
+            app.manage(OssState::default());
+            app.manage(AppList::default());
             Ok(())
         })
         .run(ctx)
