@@ -3,6 +3,9 @@ import { SettingOutlined, PlusOutlined } from '@ant-design/icons-vue'
 import { invoke } from '@tauri-apps/api/tauri'
 import { readDir, readTextFile } from '@tauri-apps/api/fs';
 import { groupBy, map, filter } from 'lodash-es'
+import * as dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+dayjs.extend(utc)
 
 const collapsed = ref(false)
 const selectedKeys = ref(['1'])
@@ -158,6 +161,8 @@ async function publish(list, version){
   }
   const file = sig_file[0]
 
+  
+
   publishInfo.signature = await readTextFile(file.path)
   publishInfo.version = version
 
@@ -165,8 +170,9 @@ async function publish(list, version){
 }
 
 function savePublishInfo(info){
-
-  invoke('publish', {info}).then(res=>{
+  const pub_date = dayjs(info.pub_date, "YYYY-MM-DD\THH:mm")
+  const utc = pub_date.utc().format()
+  invoke('publish', {info:{...info,pub_date:utc}}).then(res=>{
     message.success("发行版本成功")
     publishOpen.value = false
   }).catch(err=>{
