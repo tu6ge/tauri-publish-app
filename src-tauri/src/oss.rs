@@ -49,9 +49,9 @@ impl OssConfig {
     endpoint
   }
 
-  pub fn get_version_file_url(&self) -> String {
-    self.get_bucket_domain() + &self.version_file
-  }
+  // pub fn get_version_file_url(&self) -> String {
+  //   self.get_bucket_domain() + &self.version_file
+  // }
 
   pub fn get_file_url(&self, path: String) -> String {
     self.get_bucket_domain() + "/" + &self.save_path + "/" + &path
@@ -183,8 +183,6 @@ pub async fn publish(info: Publish) -> Result<String, String> {
     use std::path::Path;
     use serde_json::{json, to_writer_pretty};
 
-    println!("info: {:?}", info);
-
     let app = AppList::get_all()?.get(info.app_index)?;
 
     let config = OssConfig::from_file()?;
@@ -193,10 +191,18 @@ pub async fn publish(info: Publish) -> Result<String, String> {
         .plugin(Box::new(FileType{})).map_err(|e|e.to_string())?
         ;
 
-    let mut file = info.files.into_iter().filter(|f|{ 
+    // TODO 需要改成可复用的
+    for file in info.files.clone().into_iter() {
+        let file_str = app.path.to_owned() + "/" + &file;
+        let file_name = Path::new(&file_str);
+        let key = config.save_path.to_owned() + "/" + file.as_ref();
+        let _result = client.put_file(file_name.to_owned(), &key).await.map_err(|e|e.to_string())?;
+    }
+
+    let mut zip_file = info.files.into_iter().filter(|f|{ 
         f.ends_with("zip")
     });
-    let zip_file = file.next();
+    let zip_file = zip_file.next();
     if let None = zip_file {
         return Err("not found zip file".into());
     }
