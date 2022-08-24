@@ -76,14 +76,6 @@ watch(currentApp, (res)=>{
   })
 })
 
-// 右键菜单
-function openAppMenu(e, item){
-  e.preventDefault()
-  const x = e.pageX
-  const y = e.pageY
-  console.log(item)
-}
-
 const pathGroup = computed(()=>{
   return map(groupBy(pathList.value, re=>{
     return re.name.substr(0,re.name.indexOf('.msi'))
@@ -198,9 +190,7 @@ function savePublishInfo(info){
         mode="inline"
         :inline-collapsed="collapsed"
       >
-        <a-menu-item v-for="(item,index) in appList" :key="index"
-          @contextmenu="openAppMenu($event,item)"
-        >
+        <a-menu-item v-for="(item,index) in appList" :key="index">
           <span>{{item.name}}</span>
         </a-menu-item>
       </a-menu>
