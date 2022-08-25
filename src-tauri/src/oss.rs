@@ -5,7 +5,7 @@ use aliyun_oss_client::{
   client::Client
 };
 use serde::{Deserialize, Serialize};
-use tauri::{State, api::path::data_dir};
+use tauri::{api::path::data_dir};
 use std::{
   sync::{
     Arc, Mutex,
