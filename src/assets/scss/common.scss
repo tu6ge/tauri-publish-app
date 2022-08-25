@@ -15,8 +15,36 @@ h1,h2,h3,h4{
 }
 
 .setting{
-  display: flex;
-  justify-content: center;
+  width:600px;
+  margin:0 auto;
+
+  .header{
+    display: flex;
+    justify-content: space-between;
+    margin: 10px;
+    align-items:center;
+
+    h1{
+      text-align: center;
+      
+    }
+  }
+
+  
+  .setting-main{
+    display: flex;
+    justify-content: center;
+  }
+  
+
+  .ant-menu-root{
+    width: 200px;
+  }
+
+  .main-content{
+    margin-left: 25px;
+    flex:2;
+  }
 
   .formkit-actions{
     display: none;
