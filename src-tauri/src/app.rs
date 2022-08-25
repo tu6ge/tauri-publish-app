@@ -8,6 +8,8 @@ use tauri::{api::path::data_dir};
 pub struct AppConfig{
   pub name: String,
   pub path: String,
+  pub oss_path: String,
+  pub version_file: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Default)]

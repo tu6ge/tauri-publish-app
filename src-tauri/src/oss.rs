@@ -18,8 +18,6 @@ pub struct OssConfig{
   pub key_secret: String,
   pub endpoint: String,
   pub bucket: String,
-  pub save_path: String,
-  pub version_file: String,
 }
 
 impl OssConfig {
@@ -54,7 +52,7 @@ impl OssConfig {
   // }
 
   pub fn get_file_url(&self, path: String) -> String {
-    self.get_bucket_domain() + "/" + &self.save_path + "/" + &path
+    self.get_bucket_domain() + "/" + &path
   }
 }
 
@@ -63,7 +61,7 @@ impl OssConfig {
 pub struct OssConfigWrapper(Arc<Mutex<OssConfig>>);
 
 #[tauri::command]
-pub fn save_oss_config(config: OssConfig, _db: State<'_, OssConfigWrapper>) -> Result<String, String> {
+pub fn save_oss_config(config: OssConfig) -> Result<String, String> {
   let json = serde_json::to_string_pretty(&config).map_err(|_|{"转 json 格式失败".to_string()})?;
   let data_dir = data_dir();
   if let None = data_dir {
@@ -157,7 +155,7 @@ pub async fn upload_files(files: Vec<String>, app_index: usize) -> Result<String
   for file in files.into_iter() {
     let file_str = app.path.to_owned() + "/" + &file;
     let file_name = Path::new(&file_str);
-    let key = config.save_path.to_owned() + "/" + file.as_ref();
+    let key = app.oss_path.to_owned() + "/" + file.as_ref();
     let _result = client.put_file(file_name.to_owned(), &key).await.map_err(|e|e.to_string())?;
   }
 
@@ -195,7 +193,7 @@ pub async fn publish(info: Publish) -> Result<String, String> {
     for file in info.files.clone().into_iter() {
         let file_str = app.path.to_owned() + "/" + &file;
         let file_name = Path::new(&file_str);
-        let key = config.save_path.to_owned() + "/" + file.as_ref();
+        let key = app.oss_path.to_owned() + "/" + file.as_ref();
         let _result = client.put_file(file_name.to_owned(), &key).await.map_err(|e|e.to_string())?;
     }
 
@@ -206,7 +204,7 @@ pub async fn publish(info: Publish) -> Result<String, String> {
     if let None = zip_file {
         return Err("not found zip file".into());
     }
-    let zip_file = zip_file.unwrap();
+    let zip_file = app.oss_path + &zip_file.unwrap();
     let zip_file_url = config.get_file_url(zip_file);
 
     let json = json!({
@@ -220,7 +218,7 @@ pub async fn publish(info: Publish) -> Result<String, String> {
     let mut json_vu8 = Vec::new();
     to_writer_pretty(&mut json_vu8, &json).map_err(|e|e.to_string())?;
 
-    client.put_content(&json_vu8, &config.version_file).await.map_err(|e|e.to_string())?;
+    client.put_content(&json_vu8, &app.version_file).await.map_err(|e|e.to_string())?;
 
     Ok("ok".into())
 }

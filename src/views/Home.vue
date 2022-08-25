@@ -32,8 +32,6 @@ const configData = reactive({
   key_secret: '',
   endpoint: '',
   bucket: '',
-  save_path: '',
-  version_file: '',
 })
 
 import { message } from 'ant-design-vue'
@@ -115,6 +113,8 @@ function get_all_app(){
 const appData = reactive({
   name: '',
   path: '',
+  oss_path:'',
+  version_file: '',
 })
 
 import { open } from '@tauri-apps/api/dialog'
@@ -241,6 +241,8 @@ function savePublishInfo(info){
           </template>
         </FormKit>
         <FormKit type="text" label="APP 名称" name="name" validation="required"></FormKit>
+        <FormKit type="text" label="安装包存放目录" name="oss_path" validation="required" help="设置一个 OSS 的目录，用于存放所有版本的安装包"></FormKit>
+        <FormKit type="text" label="版本校验文件存储路径" name="version_file" validation="required" help="谨慎修改，修改后可能导致之前的 App 无法升级"></FormKit>
       </FormKit>
     </a-modal>
     <a-modal v-model:visible="initOss" title="初始化 OSS 配置" @ok="$formkit.submit('home_setting')" :cancelText="false"
@@ -252,8 +254,6 @@ function savePublishInfo(info){
         <FormKit type="text" label="KeySecret" name="key_secret" validation="required"></FormKit>
         <FormKit type="text" label="EndPoint" name="endpoint" validation="required"></FormKit>
         <FormKit type="text" label="Bucket" name="bucket" validation="required"></FormKit>
-        <FormKit type="text" label="安装包存放目录" name="save_path" validation="required" help="设置一个 OSS 的目录，用于存放所有版本的安装包"></FormKit>
-        <FormKit type="text" label="版本校验文件存储路径" name="version_file" validation="required" help="谨慎修改，修改后可能导致之前的 App 无法升级"></FormKit>
       </FormKit>
     </a-modal>
     <a-modal v-model:visible="publishOpen" title="发布新版本" @ok="$formkit.submit('publish')">
