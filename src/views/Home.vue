@@ -163,8 +163,6 @@ async function publish(list, version){
   }
   const file = sig_file[0]
 
-  
-
   publishInfo.signature = await readTextFile(file.path)
   publishInfo.version = version
 
