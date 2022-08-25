@@ -59,6 +59,18 @@ const appData = ref({
   version_file: '',
 })
 
+const fullFileUrl = computed(()=>{
+  const bucket = configData.value.bucket
+  const domain = configData.value.endpoint.replace('https://', 'https://' + bucket + '.')
+  return domain + '/' + appData.value.version_file
+})
+
+import { writeText } from '@tauri-apps/api/clipboard'
+async function copyFullFileUrl(){
+  await writeText(fullFileUrl._value)
+  message.success("复制成功")
+}
+
 function selectApp(index){
   appIndex.value = index
 
@@ -153,7 +165,21 @@ async function removeApp(){
             <FormKit type="text" label="安装包存放目录" name="oss_path"
               placeholder="apps"
             validation="required" help="设置一个 OSS 的目录，用于存放所有版本的安装包"></FormKit>
-            <FormKit type="text" label="版本校验文件存储路径" name="version_file" validation="required" help="谨慎修改，修改后可能导致之前的 App 无法升级"></FormKit>
+            <FormKit type="text" label="版本校验文件存储路径"
+              outer-class="version-file"
+              name="version_file"
+              validation="required" 
+              help="谨慎修改，修改后可能导致之前的 App 无法升级"
+            >
+              <template #help>
+                <div class="formkit-help">
+                  <p>谨慎修改，修改后可能导致之前的 App 无法升级</p>
+                  <p>完整连接 {{fullFileUrl}} <a @click="copyFullFileUrl">复制</a></p>
+                  <!-- <p>可将完整连接复制到 tauri.config.json 文件中的 tauri.updater.endpoints 配置项中</p> -->
+                </div>
+                
+              </template>
+            </FormKit>
             <div class="btn-wrapper between">
               <a-button type="primary" @click="$formkit.submit('app_setting')">保存</a-button>
               <a-popconfirm

@@ -1,6 +1,6 @@
 {
   "package": {
-    "productName": "Tauri Vue Template",
+    "productName": "Tauri Publish App",
     "version": "0.2.1"
   },
   "build": {
@@ -60,7 +60,7 @@
     },
     "windows": [
       {
-        "title": "Tauri Vue Template",
+        "title": "Tauri Publish App",
         "width": 1400,
         "height": 800,
         "resizable": true,
