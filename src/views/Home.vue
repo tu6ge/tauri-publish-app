@@ -48,7 +48,7 @@ function saveOssConfig(data) {
 
 onMounted(()=>{
   invoke('get_oss_config').then((res)=>{
-    
+    configData.value = ref(res).value
   }).catch(err=>{
     initOss.value = true
   })
@@ -180,6 +180,14 @@ function savePublishInfo(info){
     console.error(err)
   })
 }
+
+import { open as openUrl } from '@tauri-apps/api/shell'
+async function openVersionInfo(){
+
+  const bucket = configData.value.bucket
+  const domain = configData.value.endpoint.replace('https://', 'https://' + bucket + '.')
+  await openUrl(domain + "/" + currentApp.value.version_file)
+}
 </script>
 <template>
   <div class="flex home">
@@ -252,8 +260,8 @@ function savePublishInfo(info){
       <FormKit type="form" submit-label="保存" v-model="configData" id="home_setting" @submit="saveOssConfig">
         <FormKit type="text" label="KeyId" name="key_id" validation="required"></FormKit>
         <FormKit type="text" label="KeySecret" name="key_secret" validation="required"></FormKit>
-        <FormKit type="text" label="EndPoint" name="endpoint" validation="required"></FormKit>
-        <FormKit type="text" label="Bucket" name="bucket" validation="required"></FormKit>
+        <FormKit type="text" label="EndPoint" name="endpoint" validation="required" placeholder="https://oss-cn-shanghai.aliyuncs.com"></FormKit>
+        <FormKit type="text" label="Bucket" name="bucket" validation="required" ></FormKit>
       </FormKit>
     </a-modal>
     <a-modal v-model:visible="publishOpen" title="发布新版本" @ok="$formkit.submit('publish')">
@@ -262,6 +270,7 @@ function savePublishInfo(info){
         <FormKit type="datetime-local" label="发行时间" name="pub_date" validation="required"></FormKit>
         <FormKit type="text" label="版本号" name="version" placeholder="请输入要发布的版本号" validation="required"></FormKit>
         <FormKit type="textarea" label="签名信息" name="signature" validation="required" ></FormKit>
+        <a @click="openVersionInfo">查看当前版本信息</a>
       </FormKit>
     </a-modal>
     
