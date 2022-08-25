@@ -5,6 +5,7 @@ import { readDir, readTextFile } from '@tauri-apps/api/fs';
 import { groupBy, map, filter } from 'lodash-es'
 import * as dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
+import {reset} from '@formkit/vue'
 dayjs.extend(utc)
 
 const collapsed = ref(false)
@@ -111,7 +112,7 @@ function get_all_app(){
   })
 }
 
-const addData = reactive({
+const appData = reactive({
   name: '',
   path: '',
 })
@@ -122,13 +123,14 @@ function selectAppPath() {
     directory: true,
     //defaultPath: await appDir(),
   }).then((path)=>{
-    addData.path = path
+    appData.path = path
   })
 }
 
 function saveApp(data){
   invoke('push_app', {app:data}).then((res)=>{
     get_all_app()
+    reset('app_setting')
     addAppModel.value = false
   }).catch(err=>{
     console.error(err)
@@ -190,7 +192,7 @@ function savePublishInfo(info){
         mode="inline"
         :inline-collapsed="collapsed"
       >
-        <a-menu-item v-for="(item,index) in appList" :key="index">
+        <a-menu-item v-for="(item,index) in appList" :key="index" @click="appIndex = index">
           <span>{{item.name}}</span>
         </a-menu-item>
       </a-menu>
@@ -234,7 +236,7 @@ function savePublishInfo(info){
     </a-layout>
 
     <a-modal v-model:visible="addAppModel" title="新增 App" @ok="$formkit.submit('app_setting')">
-      <FormKit type="form" v-model="addData" id="app_setting" @submit="saveApp">
+      <FormKit type="form" v-model="appData" id="app_setting" @submit="saveApp">
         <FormKit type="text" label="安装包所在目录" name="path" readonly validation="required" placeholder="安装包所在目录">
           <template #suffix>
             <a-button type="primary" @click="selectAppPath">浏览</a-button>

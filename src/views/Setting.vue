@@ -1,6 +1,10 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/tauri'
 
+// import {useOssStore} from '@/store/setting.js'
+
+// const ossStore = useOssStore()
+
 const collapsed = ref(false)
 const selectedKeys = ref(['oss'])
 const openKeys = ref([])
@@ -11,8 +15,14 @@ const isOss = computed(()=>{
 })
 
 const appList = ref([])
-
+const appIndex = ref(0)
 onMounted(()=>{
+  invoke('get_oss_config').then((res)=>{
+    configData.value = ref(res).value
+  }).catch(err=>{
+    
+  })
+
   get_all_app()
 })
 
@@ -42,18 +52,45 @@ function saveOssConfig(data) {
   })
 }
 
-onMounted(()=>{
-  invoke('get_oss_config').then((res)=>{
-    configData.value = ref(res).value
-  }).catch(err=>{
-    
-  })
-})
 
-const addData = reactive({
-  name: 'abc',
+
+const appData = ref({
+  name: '',
   path: '',
 })
+
+function selectApp(index){
+  appIndex.value = index
+
+  appData.value = appList.value[index]
+}
+
+import { open } from '@tauri-apps/api/dialog'
+function selectAppPath() {
+  open({
+    directory: true,
+    //defaultPath: await appDir(),
+  }).then((path)=>{
+    appData.value.path = path
+  })
+}
+
+function saveApp(app){
+  invoke('update_app', {index: appIndex.value, app}).then((res)=>{
+    appList.value[appIndex.value] = app
+    message.success("保存成功")
+  }).catch(err=>{
+    console.error(err)
+  })
+}
+
+async function removeApp(){
+  await invoke('remove_app', {index: appIndex.value})
+  appList.value.splice(appIndex.value, 1)
+  selectedKeys.value = [0]
+  selectApp(0)
+  message.success("已移除")
+}
 </script>
 <template>
   
@@ -77,7 +114,7 @@ const addData = reactive({
         </a-menu-item>
         <a-sub-menu key="app">
           <template #title>App</template>
-          <a-menu-item v-for="(item,index) in appList" :key="index">
+          <a-menu-item v-for="(item,index) in appList" :key="index" @click="selectApp(index)">
             <span>{{item.name}}</span>
           </a-menu-item>
         </a-sub-menu>
@@ -102,10 +139,10 @@ const addData = reactive({
           </FormKit>
         </div>
         <div v-show="!isOss">
-          <FormKit type="form" v-model="addData" id="app_setting" @submit="saveApp">
-            <FormKit type="text" label="APP 名称" name="name" readonly>
+          <FormKit type="form" v-model.sync="appData" id="app_setting" @submit="saveApp">
+            <FormKit type="text" label="APP 名称" name="name">
               <template #inner>
-                {{addData.name}}
+                {{appData.name}}
               </template>
             </FormKit>
             <FormKit type="text" label="安装包所在目录" name="path" readonly validation="required" placeholder="安装包所在目录">
@@ -115,6 +152,14 @@ const addData = reactive({
             </FormKit>
             <div class="btn-wrapper between">
               <a-button type="primary" @click="$formkit.submit('app_setting')">保存</a-button>
+              <a-popconfirm
+                title="确定移除该 App 吗"
+                ok-text="移除"
+                cancel-text="取消"
+                @confirm="removeApp"
+              >
+                <a-button type="default" >移除App</a-button>
+              </a-popconfirm>
             </div>
           </FormKit>
         </div>

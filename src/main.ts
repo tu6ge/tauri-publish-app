@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import Antd from 'ant-design-vue'
+import { createPinia } from 'pinia'
 
 import App from './App.vue'
 // import 'ant-design-vue/dist/antd.css'
@@ -16,6 +17,7 @@ import '@/assets/scss/common.scss' // 公共样式
 createApp(App)
   .use(router)
   .use(Antd)
+  .use(createPinia())
   .use(plugin, defaultConfig({
     locales: { zh },
     locale: 'zh'
