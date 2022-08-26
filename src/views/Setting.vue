@@ -157,7 +157,9 @@ async function removeApp(){
                 {{appData.name}}
               </template>
             </FormKit>
-            <FormKit type="text" label="安装包所在目录" name="path" readonly validation="required" placeholder="安装包所在目录">
+            <FormKit type="text" label="安装包所在目录" name="path" readonly validation="required" placeholder="安装包所在目录"
+              help="选择 xxx\src-tauri\target\release\bundle\msi 目录，目前只支持 msi"
+            >
               <template #suffix>
                 <a-button type="primary" @click="selectAppPath">浏览</a-button>
               </template>
