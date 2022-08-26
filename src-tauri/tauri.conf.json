@@ -13,7 +13,7 @@
     "bundle": {
       "active": true,
       "targets": ["deb","updater","msi"],
-      "identifier": "net.uninen.dev",
+      "identifier": "com.tu6ge.tauri-publish-app",
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",
