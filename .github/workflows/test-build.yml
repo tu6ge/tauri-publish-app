@@ -1,16 +1,16 @@
 name: Build
 
-on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'src/**'
-      - 'src-tauri/**'
-      - 'tests/**'
-      - 'pnpm-lock.yaml'
-      - '.github/workflows/test.yml'
-  workflow_dispatch:
+# on:
+#   push:
+#     branches:
+#       - main
+#     paths:
+#       - 'src/**'
+#       - 'src-tauri/**'
+#       - 'tests/**'
+#       - 'pnpm-lock.yaml'
+#       - '.github/workflows/test.yml'
+#   workflow_dispatch:
 
 concurrency:
   group: build-${{ github.ref }}
