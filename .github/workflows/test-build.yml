@@ -18,6 +18,8 @@ concurrency:
 
 jobs:
   test-build:
+    environment: tauri
+    
     strategy:
       fail-fast: true
       matrix:
