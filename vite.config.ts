@@ -49,5 +49,13 @@ export default defineConfig({
   },
   test: {
     include: ['tests/unit/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    deps: {
+      inline: [
+        'ant-design-vue',
+        '@formkit/vue',
+        'vue-router'
+      ]
+    },
+    environment: 'happy-dom'
   },
 })
