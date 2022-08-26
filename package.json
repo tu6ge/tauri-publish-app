@@ -1,7 +1,7 @@
 {
   "name": "tauri-publish-app",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.1.5",
   "scripts": {
     "dev": "tauri dev",
     "build": "tauri build",
@@ -12,7 +12,8 @@
     "ts-check": "vue-tsc --noEmit",
     "preview": "vite preview",
     "check": "cd src-tauri && cargo check",
-    "vue": "vue-devtools"
+    "vue": "vue-devtools",
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0"
   },
   "dependencies": {
     "@ant-design/icons-vue": "^6.1.0",
