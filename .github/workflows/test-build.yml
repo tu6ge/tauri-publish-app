@@ -1,16 +1,16 @@
 name: Build
 
-# on:
-#   push:
-#     branches:
-#       - main
-#     paths:
-#       - 'src/**'
-#       - 'src-tauri/**'
-#       - 'tests/**'
-#       - 'pnpm-lock.yaml'
-#       - '.github/workflows/test.yml'
-#   workflow_dispatch:
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'src-tauri/**'
+      - 'tests/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/test.yml'
+  workflow_dispatch:
 
 concurrency:
   group: build-${{ github.ref }}
@@ -53,3 +53,6 @@ jobs:
 
       - name: Build Vite + Tauri
         run: pnpm build
+        env:
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
