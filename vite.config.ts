@@ -23,9 +23,9 @@ export default defineConfig({
     }),
     Components({
       resolvers: [
-        AntDesignVueResolver({
-          //importCss:false,
-        }),
+        // AntDesignVueResolver({
+        //   //importCss:false,
+        // }),
       ]
     }),
   ],
@@ -51,9 +51,9 @@ export default defineConfig({
     include: ['tests/unit/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     deps: {
       inline: [
-        'ant-design-vue',
-        '@formkit/vue',
-        'vue-router'
+        //'ant-design-vue',
+        // '@formkit/vue',
+        // 'vue-router'
       ]
     },
     environment: 'happy-dom'

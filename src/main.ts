@@ -3,7 +3,7 @@ import Antd from 'ant-design-vue'
 import { createPinia } from 'pinia'
 
 import App from './App.vue'
-// import 'ant-design-vue/dist/antd.css'
+import 'ant-design-vue/dist/antd.css'
 import router from './router'
 
 import { zh } from '@formkit/i18n'

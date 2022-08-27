@@ -204,7 +204,7 @@ async function openVersionInfo(){
       </a-menu>
       <a-button type="primary" @click="addAppModel=true">
         <template #icon>
-          <PlusOutlined />
+          <PlusOutlined></PlusOutlined>
         </template>
         添加 APP
       </a-button>
@@ -218,7 +218,7 @@ async function openVersionInfo(){
         <h1>安装包列表</h1>
         <router-link :to="{name:'setting'}">
           <a-button shape="circle">
-            <template #icon><SettingOutlined /></template>
+            <template #icon><SettingOutlined></SettingOutlined></template>
           </a-button>
         </router-link>
         
