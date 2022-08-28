@@ -1,15 +1,42 @@
-use std::{fs::File, io::{Write, Read}};
+use std::{fs::File, io::{Write, Read}, path::Path, collections::HashMap};
 
 use serde::{Deserialize, Serialize};
 use tauri::{api::path::data_dir};
-
+use super::oss::OssConfig;
 
 #[derive(Default,Serialize, Deserialize, Clone)]
 pub struct AppConfig{
-  pub name: String,
-  pub path: String,
-  pub oss_path: String,
-  pub version_file: String,
+	pub name: String,
+	pub path: String,
+	pub oss_path: String,
+	pub version_file: String,
+}
+
+impl AppConfig {
+
+	/// # 检测文件是否上传到 OSS 
+	pub fn check_oss(&self) -> Result<HashMap<String, bool>, String>{
+		use super::oss::ObjectMeta;
+
+		let path = Path::new(&self.path);
+		let config = OssConfig::from_file()?;
+		let client = config.client()?;
+		let mut result: HashMap<String, bool> = HashMap::new();
+		
+		for entry in path.read_dir().map_err(|e|e.to_string())? {
+			if let Ok(entry) = entry {
+				let file_name = entry.file_name().into_string().map_err(|_|"file name into string failed".to_owned())?;
+
+				let key = self.oss_path.clone() + "/" + &file_name;
+				let res = client.get_object_meta(&key)?;
+
+				result.insert(file_name.to_owned(), res);
+			} else{
+				return Err("read dir failed".to_string());
+			}
+		}
+		Ok(result)
+	}
 }
 
 #[derive(Serialize, Deserialize, Clone, Default)]
@@ -88,6 +115,14 @@ impl AppList {
     self.list.remove(index);
     self
   }
+}
+
+
+#[tauri::command]
+pub fn app_check_oss(index: usize) -> Result<HashMap<String, bool>, String> {
+	let app = AppList::get_all()?.get(index)?;
+
+	app.check_oss()
 }
 
 #[tauri::command]

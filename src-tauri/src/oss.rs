@@ -2,10 +2,10 @@ use std::{fs::File, io::{Write, Read}};
 
 use aliyun_oss_client::{
   plugin::Plugin, 
-  client::Client
+  client::Client, auth::VERB
 };
 use serde::{Deserialize, Serialize};
-use tauri::{api::path::data_dir};
+use tauri::{api::path::data_dir, http::status::StatusCode};
 use std::{
   sync::{
     Arc, Mutex,
@@ -53,6 +53,14 @@ impl OssConfig {
 
   pub fn get_file_url(&self, path: String) -> String {
     self.get_bucket_domain() + "/" + &path
+  }
+
+  pub fn client(&self) -> Result<Client, String> {
+    let client = aliyun_oss_client::client(&self.key_id,&self.key_secret, &self.endpoint, &self.bucket)
+      .plugin(Box::new(FileType{})).map_err(|e|e.to_string())?
+      ;
+
+    Ok(client)
   }
 }
 
@@ -113,6 +121,29 @@ impl Plugin for FileType {
   }
 }
 
+pub trait ObjectMeta{
+  fn get_object_meta(&self, name: &str) -> Result<bool, String>;
+}
+
+impl ObjectMeta for Client<'_> {
+  fn get_object_meta(&self, key: &str) -> Result<bool, String> {
+    let mut url = self.get_bucket_url().map_err(|e|e.to_string())?;
+    let query = String::from(key);
+    url.set_path(&query);
+    url.set_query(Some("objectMeta"));
+
+    let request = self.blocking_builder(VERB::HEAD, &url, None, None)
+      .map_err(|e|e.to_string())?;
+    let response = request.send().map_err(|e|e.to_string())?;
+
+    if response.status() == StatusCode::OK {
+      Ok(true)
+    }else {
+      Ok(false)
+    }
+  }
+}
+
 #[derive(Default)]
 pub struct OssState<'a>{
   pub client: Mutex<Option<Client<'a>>>,
@@ -148,9 +179,7 @@ pub async fn upload_files(files: Vec<String>, app_index: usize) -> Result<String
 
   let config = OssConfig::from_file()?;
 
-  let client = aliyun_oss_client::client(&config.key_id,&config.key_secret, &config.endpoint, &config.bucket)
-    .plugin(Box::new(FileType{})).map_err(|e|e.to_string())?
-    ;
+  let client = config.client()?;
 
   for file in files.into_iter() {
     let file_str = app.path.to_owned() + "/" + &file;
@@ -185,9 +214,7 @@ pub async fn publish(info: Publish) -> Result<String, String> {
 
     let config = OssConfig::from_file()?;
 
-    let client = aliyun_oss_client::client(&config.key_id,&config.key_secret, &config.endpoint, &config.bucket)
-        .plugin(Box::new(FileType{})).map_err(|e|e.to_string())?
-        ;
+    let client = config.client()?;
 
     // TODO 需要改成可复用的
     for file in info.files.clone().into_iter() {

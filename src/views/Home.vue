@@ -2,7 +2,7 @@
 import { SettingOutlined, PlusOutlined } from '@ant-design/icons-vue'
 import { invoke } from '@tauri-apps/api/tauri'
 import { readDir, readTextFile } from '@tauri-apps/api/fs';
-import { groupBy, map, filter } from 'lodash-es'
+import { groupBy, map, filter, every } from 'lodash-es'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import {reset} from '@formkit/vue'
@@ -23,7 +23,11 @@ const toggleCollapsed = () => {
 const columns = [
   { title: '名称', dataIndex: 'name', key: 'name', fixed: true },
   { title: '版本', dataIndex: 'version', key: 'version' },
-  { title: '状态', dataIndex: 'status', key: 'status' },
+  { title: '状态', dataIndex: 'status', key: 'status',
+    customRender: ({value})=>{
+      return value?'已上传':'未全部上传'
+    }
+  },
   { title: '操作', key: 'action' },
 ];
 
@@ -65,13 +69,18 @@ const currentApp = computed(()=>{
   return appList.value[appIndex.value] || {}
 })
 
-watch(currentApp, (res)=>{
+watch(currentApp, async (res)=>{
   if(Object.keys(res).length==0){
     return
   }
 
-  readDir(res.path, {recursive: true}).then(paths=>{
-    pathList.value = paths
+  pathList.value = await readDir(res.path, {recursive: true})
+
+  const checkList = await invoke('app_check_oss', {index:appIndex.value})
+
+  pathList.value = map(pathList.value, res=>{
+    res.status = checkList[res.name]
+    return res
   })
 })
 
@@ -84,7 +93,7 @@ const pathGroup = computed(()=>{
       name: key,
       version: name_info[1],
       file_list: item,
-      status: '未上传',
+      status: every(item, ['status', true]),
     }
   })
 })
@@ -233,7 +242,7 @@ async function openVersionInfo(){
           </template>
           <template #expandedRowRender="{ record }">
             <p style="margin: 0" v-for="(file, k) in record.file_list" :key="k">
-              {{ file.name }} <a>已上传</a>
+              {{ file.name }} <a>{{file.status?'已上传':'未上传'}}</a>
             </p>
           </template>
         </a-table>

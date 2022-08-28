@@ -7,7 +7,7 @@ mod oss;
 use oss::{save_oss_config,get_oss_config, upload_files, OssState, publish};
 
 mod app;
-use app::{AppList, get_all_app, get_app, push_app, remove_app, update_app};
+use app::{app_check_oss, AppList, get_all_app, get_app, push_app, remove_app, update_app};
 use tauri::Manager;
 
 fn main() {
@@ -19,6 +19,7 @@ fn main() {
             get_oss_config,
             upload_files,
             publish,
+            app_check_oss,
             get_all_app,
             get_app,
             push_app,
