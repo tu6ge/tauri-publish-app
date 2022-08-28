@@ -1,4 +1,13 @@
-# [0.2.0](https://github.com/tu6ge/tauri-publish-app/compare/v0.1.5...v0.2.0) (2022-08-26)
+## [0.1.7](https://github.com/tu6ge/tauri-publish-app/compare/v0.1.6...v0.1.7) (2022-08-28)
+
+
+### Features
+
+* **app:** 检测文件是否已上传 ([b0a8ab9](https://github.com/tu6ge/tauri-publish-app/commit/b0a8ab9d5f248285da403c9e757a2b5b41367f2c))
+
+
+
+## [0.1.6](https://github.com/tu6ge/tauri-publish-app/compare/v0.1.5...v0.1.6) (2022-08-26)
 
 
 
