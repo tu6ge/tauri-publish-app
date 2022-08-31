@@ -128,8 +128,7 @@ pub trait ObjectMeta{
 impl ObjectMeta for Client<'_> {
   fn get_object_meta(&self, key: &str) -> Result<bool, String> {
     let mut url = self.get_bucket_url().map_err(|e|e.to_string())?;
-    let query = String::from(key);
-    url.set_path(&query);
+    url.set_path(key);
     url.set_query(Some("objectMeta"));
 
     let request = self.blocking_builder(VERB::HEAD, &url, None, None)

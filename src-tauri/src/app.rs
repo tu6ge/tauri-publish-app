@@ -24,16 +24,13 @@ impl AppConfig {
 		let mut result: HashMap<String, bool> = HashMap::new();
 		
 		for entry in path.read_dir().map_err(|e|e.to_string())? {
-			if let Ok(entry) = entry {
-				let file_name = entry.file_name().into_string().map_err(|_|"file name into string failed".to_owned())?;
+      let entry = entry.map_err(|e|e.to_string())?;
+			let file_name = entry.file_name().into_string().map_err(|_|"file name into string failed".to_owned())?;
 
-				let key = self.oss_path.clone() + "/" + &file_name;
-				let res = client.get_object_meta(&key)?;
+      let key = self.oss_path.clone() + "/" + &file_name;
+      let res = client.get_object_meta(&key)?;
 
-				result.insert(file_name.to_owned(), res);
-			} else{
-				return Err("read dir failed".to_string());
-			}
+      result.insert(file_name.to_owned(), res);
 		}
 		Ok(result)
 	}
