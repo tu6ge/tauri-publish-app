@@ -145,7 +145,8 @@ pub trait ObjectMeta{
 impl ObjectMeta for Client<'_> {
   async fn get_object_meta(&self, key: &str) -> Result<bool, String> {
     let mut url = self.get_bucket_url().map_err(|e|e.to_string())?;
-    url.set_path(key);
+    let query = String::from(key);
+    url.set_path(&query);
     url.set_query(Some("objectMeta"));
 
     let request = self.builder(VERB::HEAD, &url, None, None).await
