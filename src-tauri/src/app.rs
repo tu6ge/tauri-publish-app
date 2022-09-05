@@ -15,7 +15,7 @@ pub struct AppConfig{
 impl AppConfig {
 
 	/// # 检测文件是否上传到 OSS 
-	pub fn check_oss(&self) -> Result<HashMap<String, bool>, String>{
+	pub async fn check_oss(&self) -> Result<HashMap<String, bool>, String>{
 		use super::oss::ObjectMeta;
 
 		let path = Path::new(&self.path);
@@ -28,7 +28,7 @@ impl AppConfig {
 			let file_name = entry.file_name().into_string().map_err(|_|"file name into string failed".to_owned())?;
 
       let key = self.oss_path.clone() + "/" + &file_name;
-      let res = client.get_object_meta(&key)?;
+      let res = client.get_object_meta(&key).await?;
 
       result.insert(file_name.to_owned(), res);
 		}
@@ -116,10 +116,10 @@ impl AppList {
 
 
 #[tauri::command]
-pub fn app_check_oss(index: usize) -> Result<HashMap<String, bool>, String> {
+pub async fn app_check_oss(index: usize) -> Result<HashMap<String, bool>, String> {
 	let app = AppList::get_all()?.get(index)?;
 
-	app.check_oss()
+	app.check_oss().await
 }
 
 #[tauri::command]

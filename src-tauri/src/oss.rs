@@ -11,6 +11,7 @@ use std::{
     Arc, Mutex,
   },
 };
+use async_trait::async_trait;
 
 #[derive(Default,Serialize, Deserialize, Clone)]
 pub struct OssConfig{
@@ -121,19 +122,21 @@ impl Plugin for FileType {
   }
 }
 
+#[async_trait]
 pub trait ObjectMeta{
-  fn get_object_meta(&self, name: &str) -> Result<bool, String>;
+  async fn get_object_meta(&self, name: &str) -> Result<bool, String>;
 }
 
+#[async_trait]
 impl ObjectMeta for Client<'_> {
-  fn get_object_meta(&self, key: &str) -> Result<bool, String> {
+  async fn get_object_meta(&self, key: &str) -> Result<bool, String> {
     let mut url = self.get_bucket_url().map_err(|e|e.to_string())?;
     url.set_path(key);
     url.set_query(Some("objectMeta"));
 
-    let request = self.blocking_builder(VERB::HEAD, &url, None, None)
+    let request = self.builder(VERB::HEAD, &url, None, None).await
       .map_err(|e|e.to_string())?;
-    let response = request.send().map_err(|e|e.to_string())?;
+    let response = request.send().await.map_err(|e|e.to_string())?;
 
     if response.status() == StatusCode::OK {
       Ok(true)
