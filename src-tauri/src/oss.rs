@@ -1,4 +1,4 @@
-use std::{fs::File, io::{Write, Read}};
+use std::{fs::File, io::{Write, Read}, path::Path};
 
 use aliyun_oss_client::{
   plugin::Plugin, 
@@ -12,6 +12,8 @@ use std::{
   },
 };
 use async_trait::async_trait;
+
+use crate::app::{AppConfig, AppList};
 
 #[derive(Default,Serialize, Deserialize, Clone)]
 pub struct OssConfig{
@@ -62,6 +64,18 @@ impl OssConfig {
       ;
 
     Ok(client)
+  }
+
+  pub async fn upload_files(&self, files: Vec<String>, app: &AppConfig) -> Result<String, String>{
+    let client = self.client()?;
+    for file in files.into_iter() {
+      let file_str = app.path.to_owned() + "/" + &file;
+      let file_name = Path::new(&file_str);
+      let key = app.oss_path.to_owned() + "/" + file.as_ref();
+      let _result = client.put_file(file_name.to_owned(), &key).await.map_err(|e|e.to_string())?;
+    }
+
+    Ok("ok".into())
   }
 }
 
@@ -174,23 +188,10 @@ pub struct OssState<'a>{
 
 #[tauri::command]
 pub async fn upload_files(files: Vec<String>, app_index: usize) -> Result<String, String> {
-  use super::app::AppList;
-  use std::path::Path;
 
   let app = AppList::get_all()?.get(app_index)?;
 
-  let config = OssConfig::from_file()?;
-
-  let client = config.client()?;
-
-  for file in files.into_iter() {
-    let file_str = app.path.to_owned() + "/" + &file;
-    let file_name = Path::new(&file_str);
-    let key = app.oss_path.to_owned() + "/" + file.as_ref();
-    let _result = client.put_file(file_name.to_owned(), &key).await.map_err(|e|e.to_string())?;
-  }
-
-  Ok("ok".into())
+  OssConfig::from_file()?.upload_files(files, &app).await
 }
 
 // debug 可以删掉
@@ -209,7 +210,6 @@ pub struct Publish{
 #[tauri::command]
 pub async fn publish(info: Publish) -> Result<String, String> {
     use super::app::AppList;
-    use std::path::Path;
     use serde_json::{json, to_writer_pretty};
 
     let app = AppList::get_all()?.get(info.app_index)?;
@@ -218,13 +218,7 @@ pub async fn publish(info: Publish) -> Result<String, String> {
 
     let client = config.client()?;
 
-    // TODO 需要改成可复用的
-    for file in info.files.clone().into_iter() {
-        let file_str = app.path.to_owned() + "/" + &file;
-        let file_name = Path::new(&file_str);
-        let key = app.oss_path.to_owned() + "/" + file.as_ref();
-        let _result = client.put_file(file_name.to_owned(), &key).await.map_err(|e|e.to_string())?;
-    }
+    config.upload_files(info.files.clone(), &app).await?;
 
     let mut zip_file = info.files.into_iter().filter(|f|{ 
         f.ends_with("zip")
