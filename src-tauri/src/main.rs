@@ -4,9 +4,8 @@
 )]
 
 mod oss;
-use std::sync::{Mutex};
 
-use oss::{save_oss_config,get_oss_config, upload_files, publish, OssConfigWrapper, OssConfig};
+use oss::{save_oss_config,get_oss_config, upload_files, publish, OssConfigWrapper};
 
 mod app;
 use app::{app_check_oss, get_all_app, get_app, push_app, remove_app, update_app};
@@ -33,11 +32,7 @@ fn main() {
         )
         //.manage(OssConfigWrapper { db: Default::default() })
         .setup(|app|{
-            if let Ok(config) = OssConfig::from_file(){
-                app.manage(OssConfigWrapper { db: Mutex::new(config)});
-            }else{
-                app.manage(OssConfigWrapper { db: Default::default() });
-            }
+            app.manage(OssConfigWrapper::from_file());
 
             Ok(())
         })

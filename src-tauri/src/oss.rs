@@ -107,6 +107,16 @@ pub struct OssConfigWrapper{
   pub db: Mutex<OssConfig>,
 }
 
+impl OssConfigWrapper{
+  pub fn from_file() -> OssConfigWrapper{
+    if let Ok(config) = OssConfig::from_file(){
+      OssConfigWrapper { db: Mutex::new(config)}
+    }else{
+      OssConfigWrapper { db: Default::default() }
+    }
+  }
+}
+
 #[tauri::command]
 pub fn save_oss_config(config: OssConfig, config_state: State<OssConfigWrapper>) -> Result<String, String> {
 
