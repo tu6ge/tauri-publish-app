@@ -4,10 +4,12 @@
 )]
 
 mod oss;
-use oss::{save_oss_config,get_oss_config, upload_files, OssState, publish};
+use std::sync::{Mutex};
+
+use oss::{save_oss_config,get_oss_config, upload_files, publish, OssConfigWrapper, OssConfig};
 
 mod app;
-use app::{app_check_oss, AppList, get_all_app, get_app, push_app, remove_app, update_app};
+use app::{app_check_oss, get_all_app, get_app, push_app, remove_app, update_app};
 use tauri::Manager;
 
 fn main() {
@@ -29,9 +31,14 @@ fn main() {
         .menu(
             tauri::Menu::os_default("Tauri Publish App")
         )
+        //.manage(OssConfigWrapper { db: Default::default() })
         .setup(|app|{
-            app.manage(OssState::default());
-            app.manage(AppList::default());
+            if let Ok(config) = OssConfig::from_file(){
+                app.manage(OssConfigWrapper { db: Mutex::new(config)});
+            }else{
+                app.manage(OssConfigWrapper { db: Default::default() });
+            }
+
             Ok(())
         })
         .run(ctx)

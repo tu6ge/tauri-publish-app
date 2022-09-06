@@ -1,27 +1,39 @@
-use std::{fs::File, io::{Write, Read}, path::Path};
+use std::{
+  fs::File, io::{Write, Read}, 
+  path::Path,
+  sync::{
+    Mutex,
+  },
+};
 
 use aliyun_oss_client::{
   plugin::Plugin, 
   client::Client, auth::VERB
 };
 use serde::{Deserialize, Serialize};
-use tauri::{api::path::data_dir, http::status::StatusCode};
-use std::{
-  sync::{
-    Arc, Mutex,
-  },
-};
+use tauri::{api::path::data_dir, http::status::StatusCode, State};
 use async_trait::async_trait;
 
 use crate::app::{AppConfig, AppList};
 
-#[derive(Default,Serialize, Deserialize, Clone)]
+#[derive(Default,Serialize, Deserialize, Debug, Clone)]
 pub struct OssConfig{
   pub key_id: String,
   pub key_secret: String,
   pub endpoint: String,
   pub bucket: String,
 }
+
+// impl Clone for OssConfig {
+//   fn clone(&self) -> OssConfig {
+//     OssConfig {
+//       key_id: self.key_id.clone(),
+//       key_secret: self.key_secret.clone(),
+//       endpoint: self.endpoint.clone(),
+//       bucket: self.bucket.clone(),
+//     }
+//   }
+// }
 
 impl OssConfig {
   pub fn from_file() -> Result<Self, String> {
@@ -42,6 +54,18 @@ impl OssConfig {
     //println!("key_id: {}", store_config.key_id);
 
     Ok(store_config)
+  }
+
+  pub fn from_state(config: State<OssConfigWrapper>) -> Result<OssConfig, String>{
+    let conf = config.db.lock().unwrap();
+    let config = OssConfig{
+      key_id: conf.key_id.clone(),
+      key_secret: conf.key_secret.clone(),
+      endpoint: conf.endpoint.clone(),
+      bucket: conf.bucket.clone(),
+    };
+
+    Ok(config)
   }
 
   pub fn get_bucket_domain(&self) -> String {
@@ -79,12 +103,14 @@ impl OssConfig {
   }
 }
 
-
-#[derive(Default)]
-pub struct OssConfigWrapper(Arc<Mutex<OssConfig>>);
+pub struct OssConfigWrapper{
+  pub db: Mutex<OssConfig>,
+}
 
 #[tauri::command]
-pub fn save_oss_config(config: OssConfig) -> Result<String, String> {
+pub fn save_oss_config(config: OssConfig, config_state: State<OssConfigWrapper>) -> Result<String, String> {
+
+  *config_state.db.lock().unwrap() = config.clone();
   let json = serde_json::to_string_pretty(&config).map_err(|_|{"转 json 格式失败".to_string()})?;
   let data_dir = data_dir();
   if let None = data_dir {
@@ -97,17 +123,13 @@ pub fn save_oss_config(config: OssConfig) -> Result<String, String> {
     )
     .map_err(|_|"create tauri_oss_config.json failed".to_string())?;
   file.write_fmt(format_args!("{}", json)).map_err(|_|"writing tauri_oss_config.json failed".to_string())?;
-
-  // let mut oss_config = *Arc::clone(&db.0).get_mut().unwrap();
-
-  // oss_config.copy(config.clone());
   
   Ok("ok".into())
 }
 
 #[tauri::command]
-pub fn get_oss_config() -> Result<OssConfig, String> {
-  OssConfig::from_file()
+pub fn get_oss_config(config: State<OssConfigWrapper>) -> Result<OssConfig, String> {
+  OssConfig::from_state(config)
 }
 
 pub struct FileType;
@@ -161,38 +183,15 @@ impl ObjectMeta for Client<'_> {
   }
 }
 
-#[derive(Default)]
-pub struct OssState<'a>{
-  pub client: Mutex<Option<Client<'a>>>,
-}
-
-// #[tauri::command]
-// pub fn init_oss<'a>(oss_state: State<'a, OssState>) -> Result<String, String> {
-//     let config = OssConfig::from_file().unwrap();
-//     // if let Err(_) = config {
-//     //     let oss_state = OssState::default();
-//     // };
-
-//     let key_id = Cow::from(config.key_id.clone());
-//     let key_secret = &config.key_secret;
-//     let endpoint = &config.endpoint;
-//     let bucket = &config.bucket;
-//     let client = aliyun_oss_client::client_cow(key_id,key_secret, endpoint, bucket)
-//         //.plugin(Box::new(SigFile{})).map_err(|e|e.to_string()).unwrap()
-//         ;
-//     // let state = OssState{
-//     //     client: Mutex::new(Some(client)),
-//     // };
-//     *oss_state.client.lock().unwrap() = Some(client);
-//     Ok("ok".into())
-// }
 
 #[tauri::command]
-pub async fn upload_files(files: Vec<String>, app_index: usize) -> Result<String, String> {
+pub async fn upload_files(files: Vec<String>, app_index: usize, _config: State<'_, OssConfigWrapper>) -> Result<String, String> {
 
   let app = AppList::get_all()?.get(app_index)?;
 
-  OssConfig::from_file()?.upload_files(files, &app).await
+  //let conf = config.db.lock().unwrap();
+  let conf = OssConfig::from_file()?;
+  conf.upload_files(files, &app).await
 }
 
 // debug 可以删掉
@@ -217,8 +216,6 @@ pub async fn publish(info: Publish) -> Result<String, String> {
 
     let config = OssConfig::from_file()?;
 
-    let client = config.client()?;
-
     config.upload_files(info.files.clone(), &app).await?;
 
     let mut zip_file = info.files.into_iter().filter(|f|{ 
@@ -242,6 +239,7 @@ pub async fn publish(info: Publish) -> Result<String, String> {
     let mut json_vu8 = Vec::new();
     to_writer_pretty(&mut json_vu8, &json).map_err(|e|e.to_string())?;
 
+    let client = config.client()?;
     client.put_content(&json_vu8, &app.version_file).await.map_err(|e|e.to_string())?;
 
     Ok("ok".into())
