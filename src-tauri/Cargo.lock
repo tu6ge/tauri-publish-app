@@ -25,19 +25,18 @@ dependencies = [
 
 [[package]]
 name = "aliyun-oss-client"
-version = "0.7.5"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32218fee9eee71748d99cd69e3c02ecb27e6f170a488caf615bdb0863f5aaaaa"
+checksum = "ec0f1e71b32e5ea7e125218dffafd749ff180230ad44ba27be6f629ed2eb33b9"
 dependencies = [
  "anyhow",
  "async-trait",
  "base64",
  "chrono",
- "futures",
  "hmac",
- "infer 0.8.1",
+ "http",
+ "infer 0.11.0",
  "quick-xml",
- "regex",
  "reqwest",
  "sha1",
  "thiserror",
@@ -1388,9 +1387,9 @@ dependencies = [
 
 [[package]]
 name = "infer"
-version = "0.8.1"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e035cede526e0b21d5adffc9fa0eb4ef5d6026fe9c5b0bfe8084b9472b587a55"
+checksum = "0a6c16b11a665b26aeeb9b1d7f954cdeb034be38dd00adab4f2ae921a8fee804"
 dependencies = [
  "cfb 0.7.3",
 ]
@@ -2283,9 +2282,9 @@ dependencies = [
 
 [[package]]
 name = "quick-xml"
-version = "0.23.0"
+version = "0.26.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9279fbdacaad3baf559d8cabe0acc3d06e30ea14931af31af79578ac0946decc"
+checksum = "7f50b1c63b38611e7d4d7f68b82d3ad0cc71a2ad2e7f61fc10f1328d917c93cd"
 dependencies = [
  "memchr",
 ]
@@ -3203,6 +3202,7 @@ dependencies = [
  "aliyun-oss-client",
  "async-trait",
  "futures",
+ "infer 0.11.0",
  "serde",
  "serde_json",
  "tauri",
